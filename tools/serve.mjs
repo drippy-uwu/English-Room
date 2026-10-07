@@ -3,8 +3,8 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 const root=resolve(import.meta.dirname,'..');
-const allowed=new Set(['index.html','style.css','script.js','firebase-config.js','firebase.js','multiplayer.js','battle.js','battle-state.js']);
-const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8'};
+const allowed=new Set(['index.html','favicon.svg','style.css','script.js','firebase-config.js','firebase.js','multiplayer.js','battle.js','battle-state.js']);
+const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml; charset=utf-8'};
 const port=Number(process.env.PORT || 4173);
 createServer(async(req,res)=>{
   try {

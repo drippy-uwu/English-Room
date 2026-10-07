@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="English Room">
+  <defs>
+    <linearGradient id="bubble" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop stop-color="#9dbdff"/>
+      <stop offset="1" stop-color="#587ee0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#172332"/>
+  <path d="M18 12H46Q54 12 54 20V38Q54 46 46 46H30L17 55V46Q10 46 10 38V20Q10 12 18 12Z" fill="url(#bubble)"/>
+  <path d="M21 25H41M21 34H34" fill="none" stroke="#f5f8ff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="49" cy="15" r="7" fill="#f29a6a"/>
+</svg>

@@ -1,4 +1,4 @@
-# OFFLINE — lounge multijugador
+# English Room — lounge multijugador
 
 El lounge conserva su sala SVG, personajes, tipografía, cámara móvil, minimapa y movimiento por clic/tap. Ahora los participantes, las reacciones y Battle comparten estado en **Firebase Realtime Database**. El sitio sigue siendo HTML, CSS y JavaScript estáticos. No utiliza autenticación, funciones de servidor ni un backend Node.
 
@@ -55,6 +55,7 @@ Publica estos archivos juntos en la raíz del proyecto:
 
 ```text
 index.html
+favicon.svg
 style.css
 script.js
 firebase-config.js
@@ -80,13 +81,13 @@ Ruta con GitHub y Vercel:
 Alternativa con [Vercel Drop](https://vercel.com/docs/drop), sin repositorio ni terminal:
 
 1. Abre [vercel.com/drop](https://vercel.com/drop) e inicia sesión o crea tu cuenta.
-2. Arrastra `offline-vercel.zip`, preparado en la carpeta del proyecto. Contiene los diez archivos anteriores, con `index.html` directamente en la raíz.
+2. Arrastra una carpeta o un ZIP con los archivos actuales de la lista anterior, con `index.html` directamente en la raíz. Incluye `favicon.svg` para que se vea el ícono de English Room.
 3. Selecciona tu cuenta o equipo, escribe un nombre de proyecto, por ejemplo `offline-lounge`, y pulsa **Deploy**.
 4. Al terminar, abre la URL HTTPS que devuelve Vercel. No necesitas variables de entorno ni instalar dependencias.
 5. Comprueba la URL desde el teléfono y en incógnito: debe abrir sin pedir iniciar sesión en Vercel. Si pide acceso, revisa **Settings → Deployment Protection** del proyecto.
 6. Abre la misma URL en dos dispositivos, entra con nombres diferentes y comprueba que ambos aparecen y reciben los movimientos.
 
-El ZIP es una copia del código al prepararlo. Si después cambias cualquier archivo, genera un ZIP actualizado o arrastra una carpeta con los diez archivos actuales. Para actualizar el mismo proyecto, sube la carpeta en su página dentro del dashboard; volver a usar la página general de Drop crea un proyecto nuevo.
+El ZIP es una copia del código al prepararlo. Si después cambias cualquier archivo, genera un ZIP actualizado o arrastra una carpeta con los archivos actuales. Para actualizar el mismo proyecto, sube la carpeta en su página dentro del dashboard; volver a usar la página general de Drop crea un proyecto nuevo.
 
 Alternativa desde terminal, una vez que tengas cuenta:
 
@@ -112,6 +113,7 @@ Esto crea un SVG que puedes insertar en tus diapositivas e imprimir. La herramie
 | Archivo | Responsabilidad |
 | --- | --- |
 | `index.html` | Sala original, entrada, participantes, menú Fight y diálogo de batalla. |
+| `favicon.svg` | Ícono original de English Room para la pestaña del navegador. |
 | `style.css` | Estilo aprobado; añadidos para menús, aura y POWER táctil. |
 | `script.js` | Renderer original, cámara, movimientos e integración de la interfaz. |
 | `firebase-config.js` | Configuración pública y ruta de la sala compartida. |
