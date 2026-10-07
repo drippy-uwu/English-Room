@@ -14,7 +14,7 @@ export async function transactArena(room,action) {
     try { rejection = null; return applyArenaAction(value,action,room.now(),room.players); }
     catch (error) { rejection = error; return undefined; }
   },{applyLocally:false});
-  if (!result.committed) throw rejection || new Error('La solicitud cambió. Vuelve a intentar.');
+  if (!result.committed) throw rejection || new Error('The challenge changed. Please try again.');
   return result.snapshot.val() || {};
   } finally { unsubscribe?.(); }
 }
@@ -46,7 +46,7 @@ export class BattleController {
     return !!fight && !TERMINAL.includes(fight.status);
   }
   async transact(action) {
-    if (!this.room.ready || !this.room.self || !this.loaded) throw new Error('Espera a recuperar la conexión con la sala.');
+    if (!this.room.ready || !this.room.self || !this.loaded) throw new Error('Wait for your connection to the room to return.');
     const actor = this.room.self.id;
     this.arena = await transactArena(this.room,{...action,actor});
     const id = busyFight(this.arena,actor);

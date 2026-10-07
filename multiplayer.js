@@ -79,8 +79,8 @@ export class Multiplayer {
     }
   }
   async join(data) {
-    if (!this.connected) throw new Error('Sin conexión con Firebase. Espera un momento y vuelve a intentar.');
-    if (this.self) throw new Error('Ya estás en la sala.');
+    if (!this.connected) throw new Error('You are offline. Wait a moment and try again.');
+    if (this.self) throw new Error('You are already in the room.');
     const id = createId(); // Per join/tab, never a shared localStorage identity.
     this.self = { id, data:{ ...data, online:true } };
     try { await this.publishPresence(); return id; }

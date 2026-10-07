@@ -20,33 +20,33 @@ test('generates UUIDs on both HTTPS and insecure LAN previews', () => {
 test('reserves two slots atomically and rejects crossed or third-player requests', () => {
   const arena = invite(null);
   assert.equal(arena.slots.a.fightId,'fight-1'); assert.equal(arena.slots.b.fightId,'fight-1');
-  assert.throws(() => invite(arena,'fight-2','b','a'),/pendiente/);
-  assert.throws(() => invite(arena,'fight-3','c','a'),/pendiente/);
-  assert.throws(() => invite(arena,'fight-4','a','a'),/mismo/);
+  assert.throws(() => invite(arena,'fight-2','b','a'),/pending/);
+  assert.throws(() => invite(arena,'fight-3','c','a'),/pending/);
+  assert.throws(() => invite(arena,'fight-4','a','a'),/yourself/);
 });
 test('rejects distant and disconnected targets', () => {
   const p=players(); p.get('b').x=1200;
   assert.ok(!near(p.get('a'),p.get('b')));
-  assert.throws(() => invite(null,'fight-1','a','b',10000,p),/Acércate/);
-  p.delete('b'); assert.throws(() => invite(null,'fight-1','a','b',10000,p),/conectado/);
+  assert.throws(() => invite(null,'fight-1','a','b',10000,p),/Move closer/);
+  p.delete('b'); assert.throws(() => invite(null,'fight-1','a','b',10000,p),/online/);
 });
 test('allows adjacent challenges, rejects the old wider reach and rechecks distance on accept', () => {
   const p=players();
   p.get('b').x=820; // Two adjacent avatars, 100 room units apart.
   const pending=invite(null,'fight-1','a','b',10000,p);
   p.get('b').x=870; // 150 units used to be allowed, but no longer feels nearby.
-  assert.throws(() => invite(null,'too-far','a','b',10000,p),/Acércate/);
-  assert.throws(() => applyArenaAction(pending,{type:'accept',id:'fight-1',actor:'b'},11000,p),/Acérquense/);
+  assert.throws(() => invite(null,'too-far','a','b',10000,p),/Move closer/);
+  assert.throws(() => applyArenaAction(pending,{type:'accept',id:'fight-1',actor:'b'},11000,p),/Move closer/);
   assert.equal(pending.fights['fight-1'].status,'pending');
   p.get('b').x=820;
   assert.equal(applyArenaAction(pending,{type:'accept',id:'fight-1',actor:'b'},11000,p).fights['fight-1'].status,'active');
 });
 test('only recipient can accept, accepting twice cannot create another fight', () => {
   const arena=invite(null);
-  assert.throws(() => applyArenaAction(arena,{type:'accept',id:'fight-1',actor:'a'},11000,players()),/respondida/);
+  assert.throws(() => applyArenaAction(arena,{type:'accept',id:'fight-1',actor:'a'},11000,players()),/answered/);
   const active=accept(arena); const fight=active.fights['fight-1'];
   assert.equal(fight.startAt,14000); assert.equal(fight.endAt,19000);
-  assert.throws(() => accept(active),/respondida/);
+  assert.throws(() => accept(active),/answered/);
 });
 test('decline releases both reservations; pending invitations expire', () => {
   const arena=applyArenaAction(invite(null),{type:'decline',id:'fight-1',actor:'b'},11000,players());
@@ -71,7 +71,7 @@ test('both final scores determine the same winner, then enforce cooldown', () =>
   const arena=accept(invite(null)), fight=arena.fights['fight-1'];
   fight.scores.a={count:24,final:true,at:19000}; fight.scores.b={count:18,final:true,at:19000};
   sweepArena(arena,19001,players()); assert.equal(fight.winner,'a'); assert.equal(fight.status,'finished');
-  assert.throws(() => invite(arena,'fight-2','a','b',20000),/Espera/);
+  assert.throws(() => invite(arena,'fight-2','a','b',20000),/Wait/);
   assert.equal(invite(arena,'fight-2','a','b',24001).slots.a.fightId,'fight-2');
 });
 test('draw is explicit; missing final score cancels rather than inventing a winner', () => {

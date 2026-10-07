@@ -63,7 +63,7 @@ test('Realtime Database rules, presence, concurrent invitations, scores and disc
       const arena=(await sdk.get(rooms[0].reference('arena'))).val();
       acceptedId=arena.slots[ids[0]].fightId;
       assert.equal(arena.slots[ids[1]].fightId,acceptedId);
-      await assert.rejects(transaction(rooms[2],{type:'invite',id:'third',actor:ids[2],target:ids[0]}),/pendiente/);
+      await assert.rejects(transaction(rooms[2],{type:'invite',id:'third',actor:ids[2],target:ids[0]}),/pending/);
     });
     await t.test('accept shared countdown, synchronize score batches, finish and cooldown',async()=>{
       let fight=(await sdk.get(rooms[0].reference(`arena/fights/${acceptedId}`))).val();
@@ -83,7 +83,7 @@ test('Realtime Database rules, presence, concurrent invitations, scores and disc
       const arena=(await sdk.get(rooms[1].reference('arena'))).val();
       assert.equal(arena.fights[acceptedId].winner,ids[0]); assert.equal(arena.fights[acceptedId].status,'finished');
       assert.ok(arena.slots[ids[0]].cooldownUntil>Date.now());
-      await assert.rejects(transaction(rooms[0],{type:'invite',id:'too-soon',actor:ids[0],target:ids[1]}),/Espera/);
+      await assert.rejects(transaction(rooms[0],{type:'invite',id:'too-soon',actor:ids[0],target:ids[1]}),/Wait/);
     });
     await t.test('onDisconnect removes a session; remaining client cancels its active fight',async()=>{
       await delay(BATTLE.cooldown+100);

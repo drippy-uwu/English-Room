@@ -3,7 +3,7 @@ import { firebaseConfig, ROOM_PATH } from './firebase-config.js';
 const SDK_VERSION = '12.19.0';
 let connection;
 
-export function withTimeout(promise, ms = 12000, message = 'Firebase no responde. Revisa tu conexión.') {
+export function withTimeout(promise, ms = 12000, message = 'The room is not responding. Check your connection and try again.') {
   let timer;
   return Promise.race([
     promise,
@@ -13,10 +13,10 @@ export function withTimeout(promise, ms = 12000, message = 'Firebase no responde
 
 export async function connectFirebase() {
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId || !firebaseConfig.databaseURL) {
-    throw new Error('Falta configurar Firebase. Sigue README.md y pega firebaseConfig en firebase-config.js.');
+    throw new Error('The room is not configured yet. Please ask the host to check its settings.');
   }
   if (!/^https:\/\/[a-z0-9.-]+\.(firebaseio\.com|firebasedatabase\.app)\/?$/i.test(firebaseConfig.databaseURL)) {
-    throw new Error('databaseURL debe ser la URL HTTPS de tu Realtime Database, sin rutas adicionales.');
+    throw new Error('The room connection is not configured correctly. Please ask the host to check its settings.');
   }
   if (!connection) {
     connection = withTimeout(Promise.all([
@@ -32,7 +32,7 @@ export async function connectFirebase() {
 
 export function friendlyError(error) {
   const code = String(error?.code || error?.message || '').toLowerCase();
-  if (code.includes('permission') || code.includes('denied')) return 'Firebase rechazó la operación. Revisa las reglas de Realtime Database.';
-  if (code.includes('network') || code.includes('fetch') || code.includes('import')) return 'No se pudo conectar a Firebase. Revisa internet y vuelve a intentar.';
-  return error?.message || 'Ocurrió un problema. Vuelve a intentar.';
+  if (code.includes('permission') || code.includes('denied')) return 'The room could not accept this action. Please ask the host to check its settings.';
+  if (code.includes('network') || code.includes('fetch') || code.includes('import')) return 'Could not connect to the room. Check your internet connection and try again.';
+  return error?.message || 'Something went wrong. Please try again.';
 }

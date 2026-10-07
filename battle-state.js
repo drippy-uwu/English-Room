@@ -54,14 +54,14 @@ export function applyArenaAction(value,action,now,players) {
   sweepArena(arena,now,players);
   if (action.type === 'invite') {
     const {actor,target,id} = action;
-    if (!actor || !target || actor === target) throw new Error('No puedes desafiarte a ti mismo.');
-    if (!players?.has(actor) || !players.has(target)) throw new Error('Ese jugador ya no está conectado.');
-    if (!near(players.get(actor),players.get(target))) throw new Error('Acércate para desafiar a este jugador.');
+    if (!actor || !target || actor === target) throw new Error('You cannot challenge yourself.');
+    if (!players?.has(actor) || !players.has(target)) throw new Error('That player is no longer online.');
+    if (!near(players.get(actor),players.get(target))) throw new Error('Move closer to challenge this player.');
     for (const pid of [actor,target]) {
-      if (busyFight(arena,pid)) throw new Error('Ya hay una invitación o batalla pendiente.');
-      if ((arena.slots[pid]?.cooldownUntil || 0) > now) throw new Error('Espera unos segundos antes de otra batalla.');
+      if (busyFight(arena,pid)) throw new Error('A challenge or battle is already pending.');
+      if ((arena.slots[pid]?.cooldownUntil || 0) > now) throw new Error('Wait a few seconds before another battle.');
     }
-    if (arena.fights[id]) throw new Error('La invitación ya existe.');
+    if (arena.fights[id]) throw new Error('This challenge already exists.');
     const a = players.get(actor), b = players.get(target);
     arena.fights[id] = {
       from:actor,to:target,name1:a.name,name2:b.name,avatar1:a.avatar,avatar2:b.avatar,
@@ -76,19 +76,19 @@ export function applyArenaAction(value,action,now,players) {
   }
   if (action.type === 'sweep') return arena;
   const fight = arena.fights[action.id];
-  if (!fight || ![fight.from,fight.to].includes(action.actor)) throw new Error('La invitación ya no está disponible.');
+  if (!fight || ![fight.from,fight.to].includes(action.actor)) throw new Error('This challenge is no longer available.');
   if (action.type === 'accept') {
-    if (action.actor !== fight.to || fight.status !== 'pending') throw new Error('Esta invitación ya fue respondida.');
-    if (!near(players?.get(fight.from),players?.get(fight.to))) throw new Error('Acérquense antes de iniciar la batalla.');
+    if (action.actor !== fight.to || fight.status !== 'pending') throw new Error('This challenge was already answered.');
+    if (!near(players?.get(fight.from),players?.get(fight.to))) throw new Error('Move closer before starting the battle.');
     fight.status = 'active';
     fight.startAt = now+BATTLE.countdown;
     fight.endAt = fight.startAt+BATTLE.duration;
   } else if (action.type === 'decline') {
-    if (action.actor !== fight.to || fight.status !== 'pending') throw new Error('Esta invitación ya fue respondida.');
+    if (action.actor !== fight.to || fight.status !== 'pending') throw new Error('This challenge was already answered.');
     close(arena,action.id,'declined','declined',now);
   } else if (action.type === 'cancel') {
     if (!TERMINAL.includes(fight.status)) close(arena,action.id,'canceled',action.reason || 'left',now);
-  } else throw new Error('Acción de batalla inválida.');
+  } else throw new Error('Invalid battle action.');
   return arena;
 }
 

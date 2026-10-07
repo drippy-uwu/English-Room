@@ -37,6 +37,8 @@ test('original room renderer integrates real participants, mobile camera and all
   let script=await readFile('script.js','utf8');
   const elements=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(match=>['#'+match[1],new Element()]));
   elements['.join-button']=new Element();
+  elements['.scene-dock']=new Element();
+  elements['#game-hud'].hidden=true;
   const reactionButtons=REACTIONS.filter(x=>x!=='👋').map(reaction=>{const element=new Element();element.dataset.reaction=reaction;return element});
   const zoneButtons=['lounge','floor','music'].map(zone=>{const element=new Element();element.dataset.zone=zone;return element});
   elements['#room'].clientWidth=354;elements['#room'].clientHeight=450;
@@ -62,26 +64,38 @@ test('original room renderer integrates real participants, mobile camera and all
   run(script);run('multiplayer=multiplayerFake; battle=battleFake; connectionReady=true;');
   assert.equal(elements['#avatars'].children.length,0);
   elements['#name'].value=' ';await elements['#join-form'].fire('submit');assert.equal(run('player'),null);
+  assert.equal(elements['#name'].validity,'Enter your name to join.');
+  elements['#name'].value='a'.repeat(19);await elements['#join-form'].fire('submit');assert.equal(run('player'),null);
   elements['#name'].value='Brayan';await elements['#join-form'].fire('submit');
-  assert.equal(elements['#avatars'].children.length,1);assert.equal(elements['#online-count'].textContent,'1 en la sala');
+  assert.equal(elements['#avatars'].children.length,1);assert.equal(elements['#online-count'].textContent,'1 online');
   assert.ok(elements['#join-overlay'].hidden);assert.ok(!elements['#room'].inert);
+  assert.ok(!elements['#game-hud'].hidden);
+  const beforeHelp=run('[player.x,player.y]');
+  await elements['#help-button'].fire('click');assert.ok(elements['#help-dialog'].open);
+  assert.deepEqual(run('[player.x,player.y]'),beforeHelp);
+  await elements['#close-help'].fire('click');assert.ok(!elements['#help-dialog'].open);
+  await elements['#help-button'].fire('click');await elements['#help-done'].fire('click');
+  assert.ok(!elements['#help-dialog'].open);
+  await elements['#help-button'].fire('click');
+  await elements['#help-dialog'].fire('click',{clientX:-1,clientY:-1});
+  assert.ok(!elements['#help-dialog'].open);
   multiplayer.players.set('remote',{name:'Ana',avatar:3,x:790,y:700,online:true,lastSeen:Date.now()});
   run('syncPlayers(multiplayer.players)');assert.equal(elements['#avatars'].children.length,2);
-  assert.equal(elements['#online-count'].textContent,'2 en la sala');
+  assert.equal(elements['#online-count'].textContent,'2 online');
   run('player.x=720;player.y=700;positionAvatar(player);interact(remotePlayers.get("remote"))');
   assert.ok(elements['#interaction-dialog'].open);
   multiplayer.players.get('remote').x=870;
   run('syncPlayers(multiplayer.players)'); // Shared position changed before the visual interpolation finishes.
   await elements['#challenge-button'].fire('click');
   assert.deepEqual(invites,[]);assert.ok(!elements['#interaction-dialog'].open);
-  assert.match(elements['#toast'].textContent,/Acércate/);
+  assert.match(elements['#toast'].textContent,/Move closer/);
   flush();run('interact(remotePlayers.get("remote"))');
   assert.ok(!elements['#interaction-dialog'].open); // Old 150-unit reach no longer opens Fight.
   multiplayer.players.get('remote').x=820;run('syncPlayers(multiplayer.players)');flush();
   run('interact(remotePlayers.get("remote"))');assert.ok(elements['#interaction-dialog'].open);
   await elements['#challenge-button'].fire('click');
   assert.deepEqual(invites,['remote']);assert.ok(!elements['#interaction-dialog'].open);
-  for(const [width,height]of[[298,400],[354,450],[394,500],[708,480],[768,420],[1000,650],[1288,730]]){
+  for(const [width,height]of[[298,568],[320,568],[354,800],[394,500],[708,390],[768,420],[1000,650],[1288,730],[1440,900]]){
     elements['#room'].clientWidth=width;elements['#room'].clientHeight=height;mobile=width<740;
     run('followPlayer(false)');if(mobile)assert.ok(run('camera.scale*60')>=44);
     for(const [x,y]of[[0,0],[720,640],[1440,960]]){
@@ -89,14 +103,26 @@ test('original room renderer integrates real participants, mobile camera and all
       const px=run('player.x*camera.scale+camera.x'),py=run('player.y*camera.scale+camera.y'),scale=run('camera.scale');
       assert.ok(px-30*scale>=0&&px+30*scale<=width);
       assert.ok(py-125*scale>=0&&py<=height);
+      assert.ok(py<=height-run('cameraViewport().bottom'),'feet stay above the reaction dock');
     }
   }
+  // Vertical touch drags pan the fullscreen world without walking or selecting a destination.
+  elements['#room'].clientWidth=354;elements['#room'].clientHeight=800;mobile=true;
+  run('followPlayer(false)');
+  const beforeDrag=run('[player.x,player.y]');
+  await elements['#room'].fire('pointerdown',{button:0,pointerId:1,pointerType:'touch',clientX:180,clientY:280});
+  await elements['#room'].fire('pointermove',{pointerId:1,pointerType:'touch',clientX:180,clientY:340});
+  assert.equal(run('camera.mode'),'free');assert.ok(run('pointer.dragged'));
+  await elements['#room'].fire('pointerup',{pointerId:1,pointerType:'touch',clientX:180,clientY:340});
+  assert.deepEqual(run('[player.x,player.y]'),beforeDrag);assert.ok(!elements['#room'].hasPointerCapture(1));
   run('renderPeopleList()');assert.equal(elements['#people-list'].children.length,2);
   const fight={from:'local',to:'remote',name1:'Brayan',name2:'Ana',avatar1:0,avatar2:3,status:'active',startAt:10000,endAt:15000,closedAt:16000,winner:'local',scores:{local:{count:24,final:true},remote:{count:18,final:true}}};
   context.testFight=fight;
+  await elements['#help-button'].fire('click'); // An incoming battle replaces help instead of stacking modals.
   for(const phase of ['invitation','waiting','countdown','power','settling','finished','declined','expired','canceled','offline']){
     run(`renderBattle({phase:'${phase}',fight:testFight,actor:'local',count:24,now:11000,changed:true})`);
     assert.ok(elements['#battle-dialog'].open);
+    assert.ok(!elements['#help-dialog'].open);
     assert.equal(elements['#power-button'].disabled,phase!=='power');
     assert.equal(elements['#accept-fight'].hidden,phase!=='invitation');
   }
@@ -105,4 +131,5 @@ test('original room renderer integrates real participants, mobile camera and all
   assert.equal(elements['#avatars'].children.length,1);
   await elements['#leave'].fire('click');assert.equal(elements['#avatars'].children.length,0);assert.ok(!elements['#join-overlay'].hidden);
   assert.ok(elements['#room'].inert);
+  assert.ok(elements['#game-hud'].hidden);
 });

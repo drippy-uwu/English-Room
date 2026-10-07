@@ -2,6 +2,10 @@
 
 El lounge conserva su sala SVG, personajes, tipografía, cámara móvil, minimapa y movimiento por clic/tap. Ahora los participantes, las reacciones y Aura Battle comparten estado en **Firebase Realtime Database**. El sitio sigue siendo HTML, CSS y JavaScript estáticos. No utiliza autenticación, funciones de servidor ni un backend Node.
 
+La página muestra únicamente el juego a pantalla completa. Participantes, cámara, zonas, reacciones y salida flotan dentro del escenario; los nombres permanecen encima de todos los personajes. El minimapa se muestra en pantallas amplias. En celular, los controles respetan el área segura y la cámara deja espacio para que el avatar no quede detrás de la barra de reacciones. Arrastrar en cualquier dirección explora la sala; el formulario y los diálogos tienen su propio desplazamiento.
+
+Toda la interfaz del juego está en inglés, incluidos formularios, avisos, resultados y etiquetas de accesibilidad. El botón **? / How to play**, junto a la cámara, abre una guía breve: acercarse, enviar **Fight**, esperar la cuenta de 3 s, tocar **POWER!** durante 5 s y consultar el resultado. Es opcional y se cierra con **Got it**, la X, Escape o tocando fuera del diálogo. Una invitación entrante cierra la ayuda para que pueda responderse.
+
 La configuración web se lee de `firebase-config.js`. Si faltan valores, la sala explica el problema y no inventa participantes. Completa la configuración y publica las reglas antes de probar con compañeros. La URL de Vercel y el QR se obtienen después del despliegue.
 
 ## 1. Crear Firebase y conectar la sala
@@ -189,7 +193,7 @@ Haz siempre este recorrido: entrar, contar participantes, caminar, reaccionar, a
 | --- | --- |
 | Dos pestañas, misma computadora | Abre la URL dos veces. Entra como Ana y Brayan. Deben contarse dos usuarios con UUID diferentes. Acércalos y prueba el recorrido. Cierra una pestaña: debe quedar un participante. |
 | Dos navegadores | Chrome y Edge/Firefox, misma URL y nombres diferentes. Comprueba que no dependen de cookies o almacenamiento compartido; ambos reciben movimiento y resultado. |
-| Laptop + teléfono | Preferiblemente URL HTTPS de Vercel. En el teléfono comprueba cámara, botones de zona, minimapa, participantes y POWER con un pulgar. Desliza verticalmente la sala: debe desplazarse la página sin mover al avatar. |
+| Laptop + teléfono | Preferiblemente URL HTTPS de Vercel. Comprueba cámara, zonas, participantes, reacciones y POWER con un pulgar. Arrastra horizontal y verticalmente: debe explorar la sala sin mover al avatar. Los nombres deben estar siempre visibles y los botones no deben provocar pasos. El minimapa se muestra en pantallas amplias. |
 | Dos teléfonos | Misma URL, uno puede usar datos móviles y el otro Wi-Fi. Prueba aceptar, rechazar y modo avión durante la batalla. El otro recibe cancelación; al recuperar internet puedes volver a jugar. |
 | 10–20 compañeros | Distribuye el QR de producción. Entran escalonadamente y verifican el contador. Haz varias batallas simultáneas entre parejas cercanas, mientras otros caminan y reaccionan. Comprueba que nadie quede reservado en dos batallas y que el contador baje al salir. |
 
@@ -213,9 +217,9 @@ Pruebas adicionales: nombre vacío/solo espacios, nombre largo, nombre repetido 
 
 | Mensaje o síntoma | Qué revisar |
 | --- | --- |
-| Falta configurar Firebase | Pega el objeto completo en `firebase-config.js` y recarga; si ya publicaste, vuelve a desplegar. |
-| `permission_denied` | Reglas publicadas en **Realtime Database** de la misma instancia que `databaseURL`. |
-| Sin conexión / Reconectando | Internet, acceso a `gstatic.com` y Firebase desde la red escolar. Al recuperar red se rearma presencia. Si falló la carga inicial, recarga la página. |
+| The room is not configured yet | Pega el objeto completo en `firebase-config.js` y recarga; si ya publicaste, vuelve a desplegar. |
+| The room could not accept this action / `permission_denied` | Reglas publicadas en **Realtime Database** de la misma instancia que `databaseURL`. |
+| OFFLINE / RECONNECTING… | Internet, acceso a `gstatic.com` y Firebase desde la red escolar. Al recuperar red se rearma presencia. Si falló la carga inicial, recarga la página. |
 | Sala vacía | Es normal si no hay otros usuarios reales. Compara `ROOM_PATH`, `projectId` y `databaseURL` en ambos despliegues. |
 | Fight no disponible | Acércate, espera el cooldown o resuelve la invitación pendiente. |
 | Batalla cancelada | Uno se desconectó, abandonó o no pudo entregar su score final a tiempo. |

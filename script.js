@@ -9,8 +9,10 @@ const room = document.querySelector('#room');
 const world = document.querySelector('#world');
 const avatars = document.querySelector('#avatars');
 const overlay = document.querySelector('#join-overlay');
+const hud = document.querySelector('#game-hud');
 const announcement = document.querySelector('#announcement');
 const dialog = document.querySelector('#people-dialog');
+const helpDialog = document.querySelector('#help-dialog');
 const reactionButtons = [...document.querySelectorAll('[data-reaction]')];
 const zoneButtons = [...document.querySelectorAll('[data-zone]')];
 const compact = matchMedia('(max-width: 760px)');
@@ -88,7 +90,7 @@ function selectPerson(person) {
   selected = person;
   person.element.classList.add('selected');
   person.button.setAttribute('aria-pressed', 'true');
-  announcement.textContent = `${person.name}${person === player ? ', tú' : ''}`;
+  announcement.textContent = `${person.name}${person === player ? ', you' : ''}`;
 }
 function makeAvatar(name, index, x, y, isYou = false) {
   const element = document.createElement('div');
@@ -96,12 +98,12 @@ function makeAvatar(name, index, x, y, isYou = false) {
   const button = document.createElement('button');
   button.className = 'avatar-hitbox';
   button.innerHTML = character(index);
-  button.setAttribute('aria-label', `${name}${isYou ? ', tu personaje' : ', ver nombre'}`);
+  button.setAttribute('aria-label', `${name}${isYou ? ', your avatar' : ', view player'}`);
   button.setAttribute('aria-pressed', 'false');
   const label = document.createElement('span'); label.className = 'name-tag';
   label.textContent = name; // Names stay text: no user-provided HTML.
   if (isYou) {
-    const you = document.createElement('span'); you.className = 'you-label'; you.textContent = 'TÚ'; label.append(you);
+    const you = document.createElement('span'); you.className = 'you-label'; you.textContent = 'YOU'; label.append(you);
     const ring = document.createElement('span'); ring.className = 'player-ring'; element.append(ring);
   }
   element.append(button, label); avatars.append(element);
@@ -123,21 +125,32 @@ function makeAvatar(name, index, x, y, isYou = false) {
 document.querySelector('#preview-avatar').innerHTML = character(previewStyle);
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-function fitScale() { return Math.min(room.clientWidth / WORLD.width, room.clientHeight / WORLD.height); }
+function cameraViewport() {
+  // Reserve space for the HUD, including its taller layout on very narrow screens.
+  const dock = document.querySelector('.scene-dock');
+  const fallbackHeight = room.clientWidth < 320 ? 178 : room.clientHeight <= 500 && room.clientWidth >= 600 ? 64 : 130;
+  const top = hud.hidden ? 0 : 90;
+  const bottom = hud.hidden ? 0 : Math.min((dock.offsetHeight || fallbackHeight) + 28, room.clientHeight / 2);
+  return { top, bottom, height:Math.max(110,room.clientHeight-top-bottom) };
+}
+function fitScale() { return Math.min(room.clientWidth / WORLD.width, cameraViewport().height / WORLD.height); }
 function normalScale() {
   // 60-unit hitboxes stay 51px wide on mobile, except in the optional overview.
   return compact.matches ? .85 : Math.max(.72, fitScale());
 }
 function boundedCamera(x, y, scale) {
   const width = WORLD.width * scale, height = WORLD.height * scale;
+  const viewport = cameraViewport();
   return {
     x: width <= room.clientWidth ? (room.clientWidth - width) / 2 : clamp(x, room.clientWidth - width, 0),
-    y: height <= room.clientHeight ? (room.clientHeight - height) / 2 : clamp(y, room.clientHeight - height, 0)
+    y: height <= viewport.height ? viewport.top+(viewport.height-height)/2 : clamp(y, viewport.top+viewport.height-height, viewport.top)
   };
 }
 function cameraTarget(person, scale) {
-  // More headroom keeps the name and reaction visible while walking.
-  return boundedCamera(room.clientWidth / 2 - person.x * scale, room.clientHeight * .62 - person.y * scale, scale);
+  // Keep feet above the reaction dock and leave headroom for the permanent name and emoji.
+  const viewport = cameraViewport();
+  const feet = viewport.top+Math.min(viewport.height-10,Math.max(160*scale,viewport.height*.62));
+  return boundedCamera(room.clientWidth / 2 - person.x * scale, feet - person.y * scale, scale);
 }
 function renderCamera() {
   world.style.transform = `translate(${camera.x}px, ${camera.y}px) scale(${camera.scale})`;
@@ -147,7 +160,7 @@ function renderCamera() {
   mapCamera.setAttribute('width', Math.min(WORLD.width - left, room.clientWidth / camera.scale));
   mapCamera.setAttribute('height', Math.min(WORLD.height - top, room.clientHeight / camera.scale));
   document.querySelector('#overview').setAttribute('aria-pressed', String(camera.mode === 'overview'));
-  document.querySelector('#camera-mode').textContent = { overview:'VISTA GENERAL', follow:'TE SIGUE', free:'EXPLORANDO' }[camera.mode];
+  document.querySelector('#camera-mode').textContent = { overview:'ROOM VIEW', follow:'FOLLOWING YOU', free:'EXPLORING' }[camera.mode];
 }
 function animateCamera(target, scale, mode, animate = true) {
   cancelAnimationFrame(cameraFrame);
@@ -198,6 +211,7 @@ function freeDestination(x, y) {
 }
 function setJoined(joined) {
   overlay.hidden = joined;
+  hud.hidden = !joined;
   room.inert = !joined; // Keep keyboard focus out of the scene until joining.
   document.querySelector('#leave').disabled = !joined;
   document.querySelector('#recenter').disabled = !joined;
@@ -208,10 +222,11 @@ function setJoined(joined) {
 document.querySelector('#join-form').addEventListener('submit', async event => {
   event.preventDefault(); if (player || joining) return;
   const input = document.querySelector('#name'), name = input.value.trim();
-  if (!name) { input.setCustomValidity('Escribe tu nombre para entrar.'); input.reportValidity(); return; }
-  if (!multiplayer || !connectionReady || !battle?.loaded) { notify('La sala aún no está lista. Revisa el mensaje de conexión.'); return; }
+  if (!name) { input.setCustomValidity('Enter your name to join.'); input.reportValidity(); return; }
+  if (name.length > 18) { input.setCustomValidity('Keep your name to 18 characters or fewer.'); input.reportValidity(); return; }
+  if (!multiplayer || !connectionReady || !battle?.loaded) { notify('The room is still connecting. Please wait a moment.'); return; }
   joining = true;
-  const submit = document.querySelector('.join-button'); submit.disabled = true; submit.firstChild.textContent = 'Entrando… ';
+  const submit = document.querySelector('.join-button'); submit.disabled = true; submit.firstChild.textContent = 'Joining… ';
   try {
   const spawn = freeDestination(550 + Math.random()*340,790 + Math.random()*55);
   const id = await multiplayer.join({ name, avatar:previewStyle, x:Math.round(spawn.x), y:Math.round(spawn.y), currentFight:'' });
@@ -220,12 +235,9 @@ document.querySelector('#join-form').addEventListener('submit', async event => {
   const duplicate = remotePlayers.get(id);
   if (duplicate) { removeRemote(duplicate); remotePlayers.delete(id); }
   setJoined(true);
-  document.querySelector('#identity-avatar').innerHTML = character(previewStyle);
-  document.querySelector('#identity-name').textContent = name;
-  document.querySelector('#identity-status').textContent = 'En la sala · Este eres tú';
   if (compact.matches) followPlayer(false); else overview(false);
   room.focus({preventScroll:true});
-  announcement.textContent = `Bienvenido, ${name}. Toca el suelo para caminar.`;
+  announcement.textContent = `Welcome, ${name}. Click or tap the floor to walk.`;
   } catch (error) { showJoinError(error); }
   finally { joining = false; submit.disabled = false; submit.firstChild.textContent = 'Join the Room '; }
 });
@@ -259,18 +271,15 @@ function movePlayer(x,y) {
   walkingFrame = requestAnimationFrame(frame);
 }
 
-/* Tap = move. Horizontal drag = explore. Vertical gestures keep native page scroll.
-   This avoids trapping the user inside the room on a phone. */
+/* The fullscreen game pans in either direction; scrolling belongs to dialogs and the join form. */
 room.addEventListener('pointerdown', event => {
   if (!player || event.button !== 0 || event.target.closest('.viewport-tools')) return;
-  pointer = { id:event.pointerId, x:event.clientX, y:event.clientY, cameraX:camera.x, cameraY:camera.y, dragged:false, vertical:false, avatar:event.target.closest('.avatar') };
+  pointer = { id:event.pointerId, x:event.clientX, y:event.clientY, cameraX:camera.x, cameraY:camera.y, dragged:false, avatar:event.target.closest('.avatar') };
 });
 room.addEventListener('pointermove', event => {
   if (!pointer || pointer.id !== event.pointerId) return;
   const dx = event.clientX-pointer.x, dy = event.clientY-pointer.y;
   if (!pointer.dragged && Math.hypot(dx,dy) > 9) {
-    if (event.pointerType === 'touch' && Math.abs(dy) > Math.abs(dx)) { pointer.vertical = true; return; }
-    if (pointer.vertical) return;
     pointer.dragged = true; room.setPointerCapture(event.pointerId);
     cancelAnimationFrame(cameraFrame); camera.mode = 'free';
   }
@@ -278,7 +287,7 @@ room.addEventListener('pointermove', event => {
 });
 room.addEventListener('pointerup', event => {
   if (!pointer || pointer.id !== event.pointerId) return;
-  if (!pointer.dragged && !pointer.vertical && !pointer.avatar) {
+  if (!pointer.dragged && !pointer.avatar) {
     const rect = room.getBoundingClientRect();
     movePlayer((event.clientX-rect.left-camera.x)/camera.scale,(event.clientY-rect.top-camera.y)/camera.scale);
     selected?.element.classList.remove('selected'); selected?.button.setAttribute('aria-pressed','false'); selected = null;
@@ -316,14 +325,15 @@ reactionButtons.forEach(button => button.addEventListener('click', async () => {
 
 function renderPeopleList() {
   const list = document.querySelector('#people-list'); list.replaceChildren();
-  document.querySelector('#people-summary').textContent = `${multiplayer?.players.size || 0} participantes conectados`;
+  const count = multiplayer?.players.size || 0;
+  document.querySelector('#people-summary').textContent = `${count} ${count === 1 ? 'player' : 'players'} online`;
   const sorted = player ? [player,...neighbors] : neighbors;
   sorted.forEach(person => {
     const row = document.createElement('li');
     const portrait = document.createElement('span'); portrait.className = 'list-avatar'; portrait.innerHTML = character(person.index);
     const name = document.createElement('span'); name.className = 'list-name'; name.textContent = person.name;
-    const status = document.createElement('small'); status.textContent = person === player ? 'Tú' : 'En la sala'; name.append(status);
-    const button = document.createElement('button'); button.textContent = 'Ver'; button.setAttribute('aria-label',`Ver a ${person.name}`);
+    const status = document.createElement('small'); status.textContent = person === player ? 'You' : 'In the room'; name.append(status);
+    const button = document.createElement('button'); button.textContent = 'View'; button.setAttribute('aria-label',`View ${person.name}`);
     button.addEventListener('click', () => {
       dialog.close(); selectPerson(person);
       const scale = normalScale(); animateCamera(cameraTarget(person,scale),scale,'free');
@@ -333,9 +343,13 @@ function renderPeopleList() {
 }
 document.querySelector('#people-button').addEventListener('click', () => { renderPeopleList(); dialog.showModal(); });
 document.querySelector('#close-people').addEventListener('click', () => dialog.close());
-dialog.addEventListener('click', event => {
-  const rect = dialog.getBoundingClientRect();
-  if (event.target === dialog && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) dialog.close();
+// Native dialogs support Escape and return focus to the button that opened them.
+document.querySelector('#help-button').addEventListener('click', () => helpDialog.showModal());
+document.querySelector('#close-help').addEventListener('click', () => helpDialog.close());
+document.querySelector('#help-done').addEventListener('click', () => helpDialog.close());
+for (const panel of [dialog,helpDialog]) panel.addEventListener('click', event => {
+  const rect = panel.getBoundingClientRect();
+  if (event.target === panel && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) panel.close();
 });
 
 document.querySelector('#leave').addEventListener('click', async () => {
@@ -350,11 +364,9 @@ document.querySelector('#leave').addEventListener('click', async () => {
   await multiplayer?.leave();
   setJoined(false); previewStyle = Math.floor(Math.random()*24);
   document.querySelector('#preview-avatar').innerHTML = character(previewStyle);
-  document.querySelector('#identity-avatar').textContent = '—';
-  document.querySelector('#identity-name').textContent = 'Tu personaje';
-  document.querySelector('#identity-status').textContent = 'Un estilo al azar. Tú decides el nombre.';
   document.querySelector('#move-marker').hidden = true; overview(false);
-  document.querySelector('#name').focus({preventScroll:true}); announcement.textContent = 'Saliste de la sala. Puedes volver cuando quieras.';
+  helpDialog.close();
+  document.querySelector('#name').focus({preventScroll:true}); announcement.textContent = 'You left the room. Come back anytime.';
 });
 
 new ResizeObserver(() => {
@@ -363,19 +375,19 @@ new ResizeObserver(() => {
   else { const scale = normalScale(); animateCamera(cameraTarget(selected || player,scale),scale,'free',false); }
 }).observe(room);
 overview(false);
-if (matchMedia('(pointer:coarse)').matches) document.querySelector('#room-instruction').textContent = 'Toca para caminar · Arrastra ↔ para explorar';
+if (matchMedia('(pointer:coarse)').matches) document.querySelector('#room-instruction').textContent = 'Tap to walk · Drag to explore';
 
 function updateOnlineCount() {
   const count = multiplayer?.players.size || 0;
-  document.querySelector('#online-count').textContent = `${count} en la sala`;
-  document.querySelector('#join-count').textContent = count ? `${count} en la sala` : 'Sé el primero en entrar';
+  document.querySelector('#online-count').textContent = `${count} online`;
+  document.querySelector('#join-count').textContent = count ? `${count} online` : 'Be the first to join';
 }
 function removeRemote(person) {
   cancelAnimationFrame(person.animationFrame);
   clearTimeout(person.reactionTimer);
   person.element.remove(); person.mapDot.remove();
   const index = neighbors.indexOf(person); if (index >= 0) neighbors.splice(index,1);
-  if (selected === person) { selected = null; notify('Ese jugador salió de la sala.'); }
+  if (selected === person) { selected = null; notify('That player left the room.'); }
   if (interactionTarget === person.id) { interactionTarget = null; interactionDialog.close(); }
 }
 function animateRemote(person,x,y) {
@@ -427,7 +439,7 @@ function syncReaction(person,reaction) {
 function showJoinError(error) {
   const message = friendlyError(error), target = document.querySelector('#join-error');
   target.textContent = message; target.hidden = false;
-  document.querySelector('#connection-status').textContent = 'SIN CONEXIÓN';
+  document.querySelector('#connection-status').textContent = 'OFFLINE';
   if (player) notify(message);
 }
 async function initializeMultiplayer() {
@@ -437,13 +449,12 @@ async function initializeMultiplayer() {
       onPlayers:syncPlayers,
       onConnection:({ready}) => {
         connectionReady = ready;
-        document.querySelector('#connection-status').textContent = ready ? 'EN LÍNEA' : 'RECONECTANDO…';
+        document.querySelector('#connection-status').textContent = ready ? 'ONLINE' : 'RECONNECTING…';
         if (ready) document.querySelector('#join-error').hidden = true;
         if (player) {
           if (!ready) { cancelAnimationFrame(walkingFrame); player.element.classList.remove('walking'); }
           reactionButtons.forEach(button => button.disabled = !ready);
           zoneButtons.forEach(button => button.disabled = !ready);
-          document.querySelector('#identity-status').textContent = ready ? 'En la sala · Este eres tú' : 'Sin conexión · Esperando…';
         }
       },
       onError:showJoinError
@@ -461,11 +472,11 @@ initializeMultiplayer();
 function interact(person) {
   if (!player || person === player || !connectionReady) return;
   const record = multiplayer.players.get(person.id);
-  if (!record) { notify('Ese jugador ya no está conectado.'); return; }
-  if (!near(player,person) || !near(player,record)) { notify('Acércate para desafiar a este jugador.'); return; }
-  if (battle?.locked || busyFight(battle?.arena,person.id)) { notify('Ya hay una invitación o batalla pendiente.'); return; }
+  if (!record) { notify('That player is no longer online.'); return; }
+  if (!near(player,person) || !near(player,record)) { notify('Move closer to challenge this player.'); return; }
+  if (battle?.locked || busyFight(battle?.arena,person.id)) { notify('A challenge or battle is already pending.'); return; }
   const cooldown = Math.max(battle?.arena.slots?.[player.id]?.cooldownUntil || 0,battle?.arena.slots?.[person.id]?.cooldownUntil || 0);
-  if (cooldown > multiplayer.now()) { notify('Espera unos segundos antes de otra batalla.'); return; }
+  if (cooldown > multiplayer.now()) { notify('Wait a few seconds before another battle.'); return; }
   interactionTarget = person.id;
   document.querySelector('#interaction-name').textContent = person.name;
   document.querySelector('#interaction-avatar').innerHTML = character(person.index);
@@ -476,8 +487,8 @@ document.querySelector('#challenge-button').addEventListener('click', async () =
   if (!interactionTarget || battleActionPending) return;
   // Recheck both visible and shared positions: the rival can move while this menu is open.
   const person = remotePlayers.get(interactionTarget), record = multiplayer?.players.get(interactionTarget);
-  if (!player || !person || !record) { interactionDialog.close(); notify('Ese jugador ya no está conectado.'); return; }
-  if (!near(player,person) || !near(player,record)) { interactionDialog.close(); notify('Acércate para desafiar a este jugador.'); return; }
+  if (!player || !person || !record) { interactionDialog.close(); notify('That player is no longer online.'); return; }
+  if (!near(player,person) || !near(player,record)) { interactionDialog.close(); notify('Move closer to challenge this player.'); return; }
   battleActionPending = true;
   document.querySelector('#challenge-button').disabled = true;
   try { await battle.invite(interactionTarget); interactionDialog.close(); }
@@ -525,23 +536,23 @@ function renderBattle(view) {
     document.querySelector('#move-marker').hidden = true;
     multiplayer.position(player.x,player.y).catch(error => notify(friendlyError(error)));
   }
-  if (!battleDialog.open) { dialog.close(); interactionDialog.close(); battleDialog.showModal(); }
+  if (!battleDialog.open) { dialog.close(); interactionDialog.close(); helpDialog.close(); battleDialog.showModal(); }
   const opponentName = fight.from === actor ? fight.name2 : fight.name1;
   const descriptions = {
-    invitation:[`${opponentName} quiere retarte`,'Acepta una Aura Battle de cinco segundos.'],
-    waiting:['Reto enviado',`Esperando a ${opponentName}…`],
-    countdown:['Prepárate','La batalla empieza al mismo tiempo para ambos.'],
-    power:['Aura Battle',now-fight.startAt < 500 ? 'FIGHT!' : '¡Toca POWER lo más rápido que puedas!'],
-    settling:['¡Tiempo!','Esperando los dos resultados finales…'],
-    finished:[fight.winner === 'draw' ? '¡Empate!' : `${fight.winner === fight.from ? fight.name1 : fight.name2} gana!`,`${fight.scores?.[fight.from]?.count || 0} vs ${fight.scores?.[fight.to]?.count || 0}`],
-    declined:['Fight declined','El otro jugador rechazó la invitación.'],
-    expired:['Invitación vencida','No hubo respuesta. Puedes intentar más tarde.'],
-    canceled:['Batalla cancelada',fight.reason === 'disconnected' ? 'Un jugador perdió la conexión.' : fight.reason === 'scores-timeout' ? 'No llegaron ambos resultados a tiempo.' : 'Un jugador salió de la batalla.'],
-    offline:['Conexión interrumpida','POWER está pausado. Espera a recuperar la conexión.']
+    invitation:[`${opponentName} challenges you`,'Accept a five-second Aura Battle.'],
+    waiting:['Challenge sent',`Waiting for ${opponentName}…`],
+    countdown:['Get ready','The battle starts at the same time for both players.'],
+    power:['Aura Battle',now-fight.startAt < 500 ? 'FIGHT!' : 'Tap POWER as fast as you can!'],
+    settling:["Time's up!",'Waiting for both final scores…'],
+    finished:[fight.winner === 'draw' ? "It's a draw!" : `${fight.winner === fight.from ? fight.name1 : fight.name2} wins!`,`${fight.scores?.[fight.from]?.count || 0} vs ${fight.scores?.[fight.to]?.count || 0}`],
+    declined:['Challenge declined','The other player declined your challenge.'],
+    expired:['Challenge expired','No response. You can try again later.'],
+    canceled:['Battle canceled',fight.reason === 'disconnected' ? 'A player lost their connection.' : fight.reason === 'scores-timeout' ? 'Both final scores did not arrive in time.' : 'A player left the battle.'],
+    offline:['Connection lost','POWER is paused. Wait for your connection to return.']
   };
   const [title,copy] = descriptions[phase] || ['Aura Battle',''];
   text('#battle-title',title); text('#battle-copy',copy);
-  text('#battle-tag',['power','countdown'].includes(phase) ? 'EN JUEGO' : 'RETO');
+  text('#battle-tag',['power','countdown'].includes(phase) ? 'IN PLAY' : 'CHALLENGE');
   text('#battle-name-a',fight.name1); text('#battle-name-b',fight.name2);
   text('#battle-score-a',fight.from === actor && fight.status === 'active' ? count : fight.scores?.[fight.from]?.count || 0);
   text('#battle-score-b',fight.to === actor && fight.status === 'active' ? count : fight.scores?.[fight.to]?.count || 0);
@@ -560,7 +571,7 @@ function renderBattle(view) {
     const button = document.querySelector(selector); button.hidden = !show;
     button.disabled = battleActionPending || (!connectionReady && selector !== '#close-battle');
   }
-  text('#cancel-fight',phase==='waiting' ? 'Cancelar invitación' : 'Abandonar');
-  text('#battle-note',phase==='finished' ? 'Pausa de cinco segundos antes de la siguiente batalla.' : 'Un pulgar. Cinco segundos. Toda tu aura.');
+  text('#cancel-fight',phase==='waiting' ? 'Cancel challenge' : 'Leave battle');
+  text('#battle-note',phase==='finished' ? 'Wait five seconds before your next battle.' : 'One thumb. Five seconds. All your aura.');
   if (changed) announcement.textContent = `${title}. ${copy}`;
 }
