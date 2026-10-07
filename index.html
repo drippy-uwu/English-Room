@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11151d">
+  <meta name="description" content="Un lounge virtual para encontrarse. Prototipo local con personajes originales.">
+  <title>OFFLINE — El lounge</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" type="module"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="OFFLINE, inicio"><span class="brand-mark" aria-hidden="true">O<span></span></span>OFFLINE<span class="brand-period">.</span></a>
+    <span class="header-note">Un lugar para estar.</span>
+    <span id="connection-status" class="prototype-badge" role="status">CONECTANDO…</span>
+  </header>
+  <main>
+    <section class="room-heading">
+      <div><div class="eyebrow">ROOM 01 <span>/</span> ABIERTO PARA TODOS</div><h1>El lounge<span>↗</span></h1><p>Entra. Encuentra tu rincón. Pasa el rato.</p></div>
+      <button id="people-button" class="online" aria-haspopup="dialog"><span class="online-dot"></span><strong id="online-count">0 en la sala</strong><span aria-hidden="true">↗</span></button>
+    </section>
+    <section class="room-shell" aria-label="Lounge virtual">
+      <div class="room-topline"><span><span class="live-dot"></span> THE AFTER HOURS</span><span>LOUNGE · PISTA · MÚSICA</span></div>
+      <!-- The viewport crops the world on phones instead of shrinking every character. -->
+      <div id="room" class="room" tabindex="0" inert aria-label="Toca el suelo para caminar. Arrastra para explorar. También puedes usar las flechas del teclado.">
+        <div id="world" class="world">
+          <svg class="room-art" viewBox="0 0 1440 960" aria-hidden="true">
+            <defs>
+              <pattern id="tiles" width="90" height="60" patternUnits="userSpaceOnUse"><rect width="90" height="60" fill="#303845"/><path d="M90 0H0V60" fill="none" stroke="#414959" stroke-width="1.2"/></pattern>
+              <pattern id="wall-lines" width="90" height="45" patternUnits="userSpaceOnUse"><rect width="90" height="45" fill="#252d3a"/><path d="M0 0H90M45 0V22M0 22H90M15 22V45" stroke="#303948" stroke-width="1"/></pattern>
+              <linearGradient id="window-sky" x2="0" y2="1"><stop stop-color="#253a62"/><stop offset="1" stop-color="#697492"/></linearGradient>
+              <linearGradient id="blue-light" x2="0" y2="1"><stop stop-color="#3975ee" stop-opacity=".25"/><stop offset="1" stop-color="#3975ee" stop-opacity="0"/></linearGradient>
+              <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3"/></filter>
+              <g id="plant"><ellipse cy="5" rx="35" ry="13" fill="#161c25" opacity=".6"/><path d="M-24-35H24L18 4H-18Z" fill="#778582"/><ellipse cy="-35" rx="24" ry="8" fill="#515f5c"/><path d="M0-33V-103M0-73Q-51-110-38-126Q-4-121 0-73M0-57Q49-89 43-111Q8-101 0-57M0-41Q-41-55-38-76Q-12-76 0-41M0-78Q24-137 5-147Q-16-118 0-78" fill="#44735b" stroke="#588568" stroke-width="3"/></g>
+              <g id="seat"><path d="M0 8H210V70H0Z" fill="#2259ac"/><rect y="-46" width="210" height="66" rx="6" fill="#356bbf"/><rect y="6" width="210" height="34" rx="4" fill="#4d83d1"/><path d="M70 6V40M140 6V40" stroke="#2e65b5" stroke-width="2"/><rect x="-10" y="-9" width="23" height="60" rx="4" fill="#3b76c8"/><rect x="197" y="-9" width="23" height="60" rx="4" fill="#3b76c8"/><path d="M14 70V81M196 70V81" stroke="#192537" stroke-width="8"/></g>
+              <g id="speaker"><rect width="58" height="92" rx="4" fill="#181f2b" stroke="#4b5464" stroke-width="2"/><circle cx="29" cy="25" r="13" fill="#101723" stroke="#485263" stroke-width="3"/><circle cx="29" cy="65" r="20" fill="#101723" stroke="#485263" stroke-width="3"/><circle cx="29" cy="65" r="8" fill="#303a4a"/></g>
+            </defs>
+            <rect width="1440" height="960" fill="#151d29"/>
+            <path d="M40 73L80 55H1360L1400 73V890L1360 920H80L40 890Z" fill="#101722"/>
+            <!-- Broad floor and a shallow perspective back wall. -->
+            <rect x="80" y="55" width="1280" height="245" fill="url(#wall-lines)"/>
+            <path d="M40 73L80 55V880L40 890Z M1360 55L1400 73V890L1360 880Z" fill="#202936"/>
+            <path d="M80 300H1360V880H80Z" fill="url(#tiles)"/>
+            <path d="M80 297H1360" stroke="#667181" stroke-width="5"/><path d="M80 304H1360" stroke="#101723" stroke-width="6"/>
+            <path d="M80 883H1360" stroke="#556071" stroke-width="6"/><path d="M80 55H1360" stroke="#546071" stroke-width="5"/>
+            <!-- Original geometric city skyline. -->
+            <rect x="143" y="97" width="268" height="167" fill="#141b27" stroke="#657185" stroke-width="5"/>
+            <rect x="151" y="105" width="252" height="151" fill="url(#window-sky)"/>
+            <circle cx="363" cy="130" r="15" fill="#d3d9dd"/>
+            <path d="M151 222V186H191V159H229V215H255V178H281V136H326V209H351V170H380V192H403V256H151Z" fill="#1b293c"/>
+            <path d="M162 200H168M200 179H207M212 179H218M291 155H298M311 155H318M291 173H298M367 190H373" stroke="#d7b56b" stroke-width="4"/>
+            <path d="M277 103V256M151 181H403" stroke="#596578" stroke-width="5"/><path d="M139 266H415" stroke="#82909b" stroke-width="8"/>
+            <!-- Neon line and abstract graphic posters. -->
+            <path d="M452 101H895" stroke="#387cff" stroke-width="10" opacity=".35" filter="url(#glow)"/><path d="M452 101H895" stroke="#78a8ff" stroke-width="3"/>
+            <rect x="458" y="111" width="430" height="199" fill="url(#blue-light)"/>
+            <text x="494" y="197" font-family="Arial,sans-serif" font-size="58" font-weight="900" letter-spacing="-3" fill="#dce5f4">AFTER</text>
+            <text x="494" y="247" font-family="Arial,sans-serif" font-size="58" font-weight="900" letter-spacing="-3" fill="#648eff">HOURS.</text>
+            <text x="752" y="221" font-family="monospace" font-size="14" letter-spacing="4" fill="#93a2b9" transform="rotate(-90 752 221)">STAY A WHILE</text>
+            <g transform="translate(940 106)"><rect width="98" height="139" fill="#a1adb7"/><rect x="5" y="5" width="88" height="129" fill="#e46f42"/><path d="M18 102L77 28M18 126L77 52M18 78L60 26" stroke="#202b3d" stroke-width="13"/><text x="16" y="124" fill="#f9d2b1" font-family="monospace" font-size="9">NO SIGNAL / 01</text></g>
+            <g transform="translate(1085 107)"><rect width="188" height="70" rx="2" fill="#17212e" stroke="#566277"/><text x="94" y="43" text-anchor="middle" fill="#9daec6" font-family="monospace" font-size="22" letter-spacing="3">SIDE B</text></g>
+            <g stroke="#101722" stroke-width="4"><path d="M335 56V87M845 56V88M1195 56V87"/></g>
+            <g fill="#242c38" stroke="#6a7686" stroke-width="2"><path d="M318 85H352L366 112H304Z M828 85H862L876 112H814Z M1178 85H1212L1226 112H1164Z"/></g>
+            <path d="M307 115H363M817 115H873M1167 115H1223" stroke="#eab770" stroke-width="4"/>
+            <!-- Furniture at the edges leaves a spacious social floor. -->
+            <rect x="141" y="319" width="341" height="236" rx="6" fill="#22354d"/><path d="M160 538H464" stroke="#527196" stroke-width="2"/>
+            <use href="#seat" x="195" y="347"/>
+            <g transform="translate(165 441)"><rect width="85" height="86" rx="5" fill="#3d71b5"/><rect x="9" y="4" width="67" height="53" rx="4" fill="#5a8acf"/><path d="M11 64H74" stroke="#28518b" stroke-width="4"/></g>
+            <g transform="translate(340 459)"><ellipse cx="44" cy="57" rx="67" ry="20" fill="#172231" opacity=".65"/><path d="M9 13V48M78 13V48" stroke="#141e2b" stroke-width="8"/><path d="M-11 0H98V24H-11Z" fill="#915338"/><rect x="-11" y="-14" width="109" height="30" rx="4" fill="#bc7951"/><path d="M9-7H35V7H9Z" fill="#ddd4bd"/><rect x="61" y="-12" width="12" height="17" rx="2" fill="#97adbb"/></g>
+            <!-- Record booth -->
+            <rect x="999" y="316" width="322" height="202" rx="4" fill="#272e3b" stroke="#4b5566"/>
+            <use href="#speaker" x="1017" y="329"/><use href="#speaker" x="1241" y="329"/>
+            <g transform="translate(1090 362)"><path d="M0 20H134V85H0Z" fill="#252232" stroke="#6a5a58" stroke-width="2"/><rect y="-6" width="134" height="38" rx="3" fill="#865542"/><ellipse cx="34" cy="10" rx="24" ry="13" fill="#17212e"/><ellipse cx="105" cy="10" rx="24" ry="13" fill="#17212e"/><circle cx="34" cy="10" r="5" fill="#ea834f"/><circle cx="105" cy="10" r="5" fill="#779cec"/><path d="M65 2V20M72 2V20" stroke="#c9bbac" stroke-width="3"/><path d="M18 47V75M30 47V75M42 47V75M54 47V75M66 47V75M78 47V75M90 47V75M102 47V75M114 47V75" stroke="#a78871" stroke-width="7"/></g>
+            <rect x="524" y="411" width="388" height="349" rx="3" fill="#273b5a"/><rect x="538" y="425" width="360" height="321" rx="2" fill="none" stroke="#41628e" stroke-width="2"/>
+            <path d="M580 697L830 470M615 721L855 504" stroke="#33517c" stroke-width="22"/>
+            <text x="545" y="790" font-family="monospace" font-size="13" fill="#7286a5" letter-spacing="5">02 / THE FLOOR</text>
+            <g transform="translate(160 714)"><rect y="12" width="231" height="73" fill="#3c4551"/><rect y="-9" width="231" height="32" rx="3" fill="#81858a"/><path d="M15 42H216M15 67H216" stroke="#242e3a" stroke-width="3"/><rect x="22" y="-28" width="15" height="25" rx="2" fill="#d2794d"/><rect x="44" y="-23" width="15" height="20" rx="2" fill="#a2b7bb"/><path d="M165-19H203V-9H165Z" fill="#23324c"/></g>
+            <g transform="translate(1042 718)"><path d="M0 8H210V70H0Z" fill="#a75638"/><rect y="-46" width="210" height="66" rx="6" fill="#bf6846"/><rect y="6" width="210" height="34" rx="4" fill="#dd8256"/><path d="M70 6V40M140 6V40" stroke="#ae5c3c" stroke-width="2"/><rect x="-10" y="-9" width="23" height="60" rx="4" fill="#c8714b"/><rect x="197" y="-9" width="23" height="60" rx="4" fill="#c8714b"/><path d="M14 70V81M196 70V81" stroke="#192537" stroke-width="8"/></g>
+            <use href="#plant" x="124" y="365"/><use href="#plant" x="941" y="351"/><use href="#plant" x="1319" y="827"/>
+            <text x="169" y="599" font-family="monospace" font-size="13" fill="#7286a5" letter-spacing="5">01 / LOUNGE</text>
+            <text x="1050" y="570" font-family="monospace" font-size="13" fill="#7286a5" letter-spacing="5">03 / SIDE B</text>
+            <path d="M618 868H825" stroke="#de8050" stroke-width="4"/><text x="721" y="859" text-anchor="middle" font-family="monospace" font-size="10" fill="#bfc8d6" letter-spacing="4">YOU ARE HERE</text>
+          </svg>
+          <div id="avatars" class="avatars"></div>
+          <div id="move-marker" class="move-marker" hidden></div>
+        </div>
+        <div class="viewport-tools"><button id="overview" class="viewport-button" aria-pressed="false" title="Alternar vista de toda la sala"><span aria-hidden="true">▦</span> Ver sala</button><button id="recenter" class="viewport-button" disabled><span aria-hidden="true">◎</span> Seguirme</button></div>
+        <div class="minimap" aria-label="Minimapa de la sala"><svg id="minimap" viewBox="0 0 1440 960" aria-hidden="true"><rect x="80" y="55" width="1280" height="825" rx="15" fill="#293546" stroke="#65748b" stroke-width="12"/><rect x="141" y="319" width="341" height="236" fill="#355f9a"/><rect x="524" y="411" width="388" height="349" fill="#344d71"/><rect x="999" y="316" width="322" height="202" fill="#8a604d"/><g id="map-dots"></g><rect id="map-camera" fill="#ffffff08" stroke="#cddaf0" stroke-width="12"/></svg><span id="camera-mode">VISTA GENERAL</span></div>
+        <div class="room-instruction" id="room-instruction">Clic para caminar · Arrastra para explorar</div>
+      </div>
+      <div class="room-bottomline"><span>UN ESPACIO. TRES RINCONES.</span><div class="zone-links" aria-label="Caminar a una zona"><button data-zone="lounge" disabled>01 Lounge</button><button data-zone="floor" disabled>02 Pista</button><button data-zone="music" disabled>03 Música</button></div></div>
+      <div id="join-overlay" class="join-overlay">
+        <form id="join-form" class="join-card">
+          <div class="join-card-top"><span class="eyebrow">TU NOCHE EMPIEZA AQUÍ</span><span class="room-number">01</span></div>
+          <div class="join-hero"><h2>Entra en<br>escena<span>.</span></h2><div id="preview-avatar" class="preview-avatar" aria-hidden="true"></div></div>
+          <p>Un nombre, un personaje y un lugar para ti.<br>El resto, sobre la marcha.</p>
+          <label for="name">¿Cómo te llamas?</label>
+          <input id="name" name="name" maxlength="18" placeholder="Tu nombre" autocomplete="nickname" required>
+          <button class="join-button" type="submit">Join the Room <span aria-hidden="true">↗</span></button>
+          <p id="join-error" class="inline-error" role="alert" hidden></p>
+          <div class="join-card-footer"><span><span class="online-dot"></span> <span id="join-count">Conectando con la sala…</span></span><span>Sin registro.</span></div>
+        </form>
+      </div>
+    </section>
+    <section class="controls" aria-label="Controles de la sala">
+      <div class="identity"><div id="identity-avatar" class="identity-avatar" aria-hidden="true">—</div><div class="identity-copy"><strong id="identity-name">Tu personaje</strong><span id="identity-status">Un estilo al azar. Tú decides el nombre.</span></div></div>
+      <div class="reactions"><span class="reaction-label">SUELTA UNA REACCIÓN</span><div class="reaction-buttons"><button data-reaction="😂" aria-label="Risa" disabled>😂</button><button data-reaction="❤️" aria-label="Corazón" disabled>❤️</button><button data-reaction="🔥" aria-label="Fuego" disabled>🔥</button><button data-reaction="👏" aria-label="Aplausos" disabled>👏</button><button data-reaction="💀" aria-label="Calavera" disabled>💀</button><button data-reaction="67" class="meme" aria-label="Meme 67" disabled>67</button></div></div>
+      <button id="leave" class="leave-button" disabled>Salir <span aria-hidden="true">↗</span></button>
+    </section>
+    <p class="helper">Toca un personaje cercano para desafiarlo.<span>Una sala compartida · Aura Battle</span></p>
+    <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+  </main>
+  <footer><span>OFFLINE / ROOM 01</span><span>Menos feed. Más encuentros.</span></footer>
+  <dialog id="people-dialog" class="people-dialog" aria-labelledby="people-title">
+    <div class="people-heading"><div><span class="eyebrow">EN ESTE ESPACIO</span><h2 id="people-title">La gente</h2></div><button id="close-people" class="close-button" aria-label="Cerrar participantes">✕</button></div>
+    <p id="people-summary">Participantes conectados</p><ul id="people-list" class="people-list"></ul><p class="people-footnote">“Ver” centra la cámara en esa persona.</p>
+  </dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <dialog id="interaction-dialog" class="interaction-dialog" aria-labelledby="interaction-name">
+    <div class="people-heading"><span class="eyebrow">JUGADOR CERCANO</span><button id="close-interaction" class="close-button" aria-label="Cerrar menú">✕</button></div>
+    <div class="interaction-person"><span id="interaction-avatar" aria-hidden="true"></span><div><h2 id="interaction-name"></h2><p>Aura Battle · 5 segundos</p></div></div>
+    <button id="challenge-button" class="join-button">Fight <span aria-hidden="true">↗</span></button>
+  </dialog>
+  <dialog id="battle-dialog" class="battle-dialog" aria-labelledby="battle-title">
+    <div class="battle-top"><span class="eyebrow">AURA BATTLE / 01</span><span id="battle-tag">RETO</span></div>
+    <h2 id="battle-title">Aura Battle</h2><p id="battle-copy"></p>
+    <div class="battle-versus"><div><span id="battle-avatar-a" class="battle-portrait" aria-hidden="true"></span><strong id="battle-name-a"></strong><b id="battle-score-a">0</b></div><span class="versus-label">VS</span><div><span id="battle-avatar-b" class="battle-portrait" aria-hidden="true"></span><strong id="battle-name-b"></strong><b id="battle-score-b">0</b></div></div>
+    <div id="battle-countdown" class="battle-countdown" aria-live="polite" hidden>3</div>
+    <div id="battle-timer-wrap" hidden><div class="battle-time-row"><span>TIEMPO RESTANTE</span><strong id="battle-time">5.0 s</strong></div><progress id="battle-progress" max="5000" value="5000" aria-label="Tiempo restante"></progress></div>
+    <button id="power-button" class="power-button" disabled hidden>POWER! <span id="local-power">Power: 0</span></button>
+    <div class="battle-actions"><button id="accept-fight" class="join-button" hidden>Accept <span aria-hidden="true">↗</span></button><button id="decline-fight" class="secondary-button" hidden>Decline</button><button id="cancel-fight" class="secondary-button" hidden>Cancelar</button><button id="close-battle" class="join-button" hidden>Volver a la sala <span aria-hidden="true">↗</span></button></div>
+    <p id="battle-note" class="battle-note">Un pulgar. Cinco segundos. Toda tu aura.</p>
+  </dialog>
+</body>
+</html>

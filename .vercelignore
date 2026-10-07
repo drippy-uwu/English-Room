@@ -1,0 +1,11 @@
+node_modules
+.cache
+tests
+tools
+firebase.json
+database.rules.json
+package-lock.json
+README.md
+*.log
+.git
+offline-vercel.zip

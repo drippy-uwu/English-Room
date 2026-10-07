@@ -1,0 +1,75 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "lounge": {
+        "players": {
+          ".read": true,
+          "$playerId": {
+            ".write": "$playerId.matches(/^[a-zA-Z0-9_-]{1,64}$/)",
+            ".validate": "newData.hasChildren(['name','avatar','x','y','online','lastSeen'])",
+            "name": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 18" },
+            "avatar": { ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0 && newData.val() < 24" },
+            "x": { ".validate": "newData.isNumber() && newData.val() >= 125 && newData.val() <= 1315" },
+            "y": { ".validate": "newData.isNumber() && newData.val() >= 360 && newData.val() <= 845" },
+            "online": { ".validate": "newData.val() == true" },
+            "lastSeen": { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
+            "currentFight": { ".validate": "newData.isString() && newData.val().length <= 64" },
+            "reaction": {
+              ".validate": "newData.hasChildren(['id','emoji','at'])",
+              "id": { ".validate": "newData.isString() && newData.val().length <= 64" },
+              "emoji": { ".validate": "newData.val() == '😂' || newData.val() == '❤️' || newData.val() == '🔥' || newData.val() == '👏' || newData.val() == '💀' || newData.val() == '67' || newData.val() == '👋'" },
+              "at": { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
+              "$other": { ".validate": false }
+            },
+            "$other": { ".validate": false }
+          }
+        },
+        "arena": {
+          ".read": true,
+          ".write": true,
+          "slots": {
+            "$playerId": {
+              ".validate": "newData.hasChildren(['fightId','cooldownUntil']) && (newData.child('fightId').val() == '' || (newData.parent().parent().child('fights').child(newData.child('fightId').val()).child('status').val() == 'pending' || newData.parent().parent().child('fights').child(newData.child('fightId').val()).child('status').val() == 'active'))",
+              "fightId": { ".validate": "newData.isString() && newData.val().length <= 64" },
+              "cooldownUntil": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= now + 15000" },
+              "$other": { ".validate": false }
+            }
+          },
+          "fights": {
+            "$fightId": {
+              ".validate": "newData.hasChildren(['from','to','name1','name2','avatar1','avatar2','status','createdAt','expiresAt','startAt','endAt','closedAt','winner','reason','scores']) && newData.child('from').val() != newData.child('to').val() && newData.child('scores').hasChildren([newData.child('from').val(),newData.child('to').val()]) && ((newData.child('status').val() != 'pending' && newData.child('status').val() != 'active') || (newData.parent().parent().child('slots').child(newData.child('from').val()).child('fightId').val() == $fightId && newData.parent().parent().child('slots').child(newData.child('to').val()).child('fightId').val() == $fightId)) && (newData.child('status').val() != 'active' || (newData.child('endAt').val() == newData.child('startAt').val() + 5000 && newData.child('startAt').val() > 0))",
+              "from": { ".validate": "newData.isString() && newData.val().matches(/^[a-zA-Z0-9_-]{1,64}$/)" },
+              "to": { ".validate": "newData.isString() && newData.val().matches(/^[a-zA-Z0-9_-]{1,64}$/)" },
+              "name1": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 18" },
+              "name2": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 18" },
+              "avatar1": { ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0 && newData.val() < 24" },
+              "avatar2": { ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0 && newData.val() < 24" },
+              "status": { ".validate": "newData.val() == 'pending' || newData.val() == 'active' || newData.val() == 'finished' || newData.val() == 'declined' || newData.val() == 'expired' || newData.val() == 'canceled'" },
+              "createdAt": { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
+              "expiresAt": { ".validate": "newData.isNumber() && newData.val() == newData.parent().child('createdAt').val() + 15000" },
+              "startAt": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= now + 5000" },
+              "endAt": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= now + 10000" },
+              "closedAt": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= now + 5000" },
+              "winner": { ".validate": "newData.val() == '' || newData.val() == 'draw' || newData.val() == newData.parent().child('from').val() || newData.val() == newData.parent().child('to').val()" },
+              "reason": { ".validate": "newData.isString() && newData.val().length <= 64" },
+              "scores": {
+                "$playerId": {
+                  ".validate": "($playerId == newData.parent().parent().child('from').val() || $playerId == newData.parent().parent().child('to').val()) && newData.hasChildren(['count','final','at']) && (newData.parent().parent().child('endAt').val() == 0 || newData.child('at').val() <= newData.parent().parent().child('endAt').val() + 4000) && (!data.exists() || (newData.child('count').val() == data.child('count').val() && newData.child('final').val() == data.child('final').val() && newData.child('at').val() == data.child('at').val()) || (data.child('final').val() == false && newData.parent().parent().child('status').val() == 'active' && newData.child('count').val() >= data.child('count').val() && now >= newData.parent().parent().child('startAt').val() && ((newData.child('final').val() == false && now < newData.parent().parent().child('endAt').val()) || (newData.child('final').val() == true && now >= newData.parent().parent().child('endAt').val()))))",
+                  "count": { ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0 && newData.val() <= 1000" },
+                  "final": { ".validate": "newData.isBoolean()" },
+                  "at": { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
+                  "$other": { ".validate": false }
+                }
+              },
+              "$other": { ".validate": false }
+            }
+          },
+          "$other": { ".validate": false }
+        },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}
