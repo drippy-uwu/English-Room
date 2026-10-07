@@ -539,10 +539,10 @@ function renderBattle(view) {
   if (!battleDialog.open) { dialog.close(); interactionDialog.close(); helpDialog.close(); battleDialog.showModal(); }
   const opponentName = fight.from === actor ? fight.name2 : fight.name1;
   const descriptions = {
-    invitation:[`${opponentName} challenges you`,'Accept a five-second Aura Battle.'],
+    invitation:[`${opponentName} challenges you`,'Accept a five-second Battle.'],
     waiting:['Challenge sent',`Waiting for ${opponentName}…`],
     countdown:['Get ready','The battle starts at the same time for both players.'],
-    power:['Aura Battle',now-fight.startAt < 500 ? 'FIGHT!' : 'Tap POWER as fast as you can!'],
+    power:['Battle',now-fight.startAt < 500 ? 'FIGHT!' : 'Tap POWER as fast as you can!'],
     settling:["Time's up!",'Waiting for both final scores…'],
     finished:[fight.winner === 'draw' ? "It's a draw!" : `${fight.winner === fight.from ? fight.name1 : fight.name2} wins!`,`${fight.scores?.[fight.from]?.count || 0} vs ${fight.scores?.[fight.to]?.count || 0}`],
     declined:['Challenge declined','The other player declined your challenge.'],
@@ -550,7 +550,7 @@ function renderBattle(view) {
     canceled:['Battle canceled',fight.reason === 'disconnected' ? 'A player lost their connection.' : fight.reason === 'scores-timeout' ? 'Both final scores did not arrive in time.' : 'A player left the battle.'],
     offline:['Connection lost','POWER is paused. Wait for your connection to return.']
   };
-  const [title,copy] = descriptions[phase] || ['Aura Battle',''];
+  const [title,copy] = descriptions[phase] || ['Battle',''];
   text('#battle-title',title); text('#battle-copy',copy);
   text('#battle-tag',['power','countdown'].includes(phase) ? 'IN PLAY' : 'CHALLENGE');
   text('#battle-name-a',fight.name1); text('#battle-name-b',fight.name2);
@@ -572,6 +572,6 @@ function renderBattle(view) {
     button.disabled = battleActionPending || (!connectionReady && selector !== '#close-battle');
   }
   text('#cancel-fight',phase==='waiting' ? 'Cancel challenge' : 'Leave battle');
-  text('#battle-note',phase==='finished' ? 'Wait five seconds before your next battle.' : 'One thumb. Five seconds. All your aura.');
+  text('#battle-note',phase==='finished' ? 'Wait five seconds before your next battle.' : 'One thumb. Five seconds. Give it your best.');
   if (changed) announcement.textContent = `${title}. ${copy}`;
 }

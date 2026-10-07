@@ -1,6 +1,6 @@
 # OFFLINE — lounge multijugador
 
-El lounge conserva su sala SVG, personajes, tipografía, cámara móvil, minimapa y movimiento por clic/tap. Ahora los participantes, las reacciones y Aura Battle comparten estado en **Firebase Realtime Database**. El sitio sigue siendo HTML, CSS y JavaScript estáticos. No utiliza autenticación, funciones de servidor ni un backend Node.
+El lounge conserva su sala SVG, personajes, tipografía, cámara móvil, minimapa y movimiento por clic/tap. Ahora los participantes, las reacciones y Battle comparten estado en **Firebase Realtime Database**. El sitio sigue siendo HTML, CSS y JavaScript estáticos. No utiliza autenticación, funciones de servidor ni un backend Node.
 
 La página muestra únicamente el juego a pantalla completa. Participantes, cámara, zonas, reacciones y salida flotan dentro del escenario; los nombres permanecen encima de todos los personajes. El minimapa se muestra en pantallas amplias. En celular, los controles respetan el área segura y la cámara deja espacio para que el avatar no quede detrás de la barra de reacciones. Arrastrar en cualquier dirección explora la sala; el formulario y los diálogos tienen su propio desplazamiento.
 

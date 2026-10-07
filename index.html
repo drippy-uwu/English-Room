@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#11151d">
-  <meta name="description" content="A shared virtual lounge. Hang out, react and challenge nearby players to an Aura Battle.">
+  <meta name="description" content="A shared virtual lounge. Hang out, react and challenge nearby players to a battle.">
   <title>OFFLINE — The Lounge</title>
   <link rel="stylesheet" href="style.css">
   <script src="script.js" type="module"></script>
@@ -110,8 +110,8 @@
     <p id="people-summary">Players online</p><ul id="people-list" class="people-list"></ul><p class="people-footnote">Choose “View” to find a player in the room.</p>
   </dialog>
   <dialog id="help-dialog" class="people-dialog help-dialog" aria-labelledby="help-title">
-    <div class="people-heading"><div><span class="eyebrow">AURA BATTLE</span><h2 id="help-title">How to play</h2></div><button id="close-help" class="close-button" aria-label="Close help">✕</button></div>
-    <p>One opponent. Five seconds. Bring your aura.</p>
+    <div class="people-heading"><div><span class="eyebrow">BATTLE</span><h2 id="help-title">How to play</h2></div><button id="close-help" class="close-button" aria-label="Close help">✕</button></div>
+    <p>One opponent. Five seconds. Every tap counts.</p>
     <ol class="help-steps">
       <li><strong>Get close</strong><p>Walk up to another player, then click or tap their avatar. You need to be nearby to challenge them.</p></li>
       <li><strong>Send a challenge</strong><p>Choose <b>Fight</b>. Your opponent can <b>Accept</b> or <b>Decline</b>.</p></li>
@@ -124,18 +124,18 @@
   <div id="toast" class="toast" role="status" hidden></div>
   <dialog id="interaction-dialog" class="interaction-dialog" aria-labelledby="interaction-name">
     <div class="people-heading"><span class="eyebrow">NEARBY PLAYER</span><button id="close-interaction" class="close-button" aria-label="Close player menu">✕</button></div>
-    <div class="interaction-person"><span id="interaction-avatar" aria-hidden="true"></span><div><h2 id="interaction-name"></h2><p>Aura Battle · 5 seconds</p></div></div>
+    <div class="interaction-person"><span id="interaction-avatar" aria-hidden="true"></span><div><h2 id="interaction-name"></h2><p>Battle · 5 seconds</p></div></div>
     <button id="challenge-button" class="join-button">Fight <span aria-hidden="true">↗</span></button>
   </dialog>
   <dialog id="battle-dialog" class="battle-dialog" aria-labelledby="battle-title">
-    <div class="battle-top"><span class="eyebrow">AURA BATTLE / 01</span><span id="battle-tag">CHALLENGE</span></div>
-    <h2 id="battle-title">Aura Battle</h2><p id="battle-copy"></p>
+    <div class="battle-top"><span class="eyebrow">BATTLE / 01</span><span id="battle-tag">CHALLENGE</span></div>
+    <h2 id="battle-title">Battle</h2><p id="battle-copy"></p>
     <div class="battle-versus"><div><span id="battle-avatar-a" class="battle-portrait" aria-hidden="true"></span><strong id="battle-name-a"></strong><b id="battle-score-a">0</b></div><span class="versus-label">VS</span><div><span id="battle-avatar-b" class="battle-portrait" aria-hidden="true"></span><strong id="battle-name-b"></strong><b id="battle-score-b">0</b></div></div>
     <div id="battle-countdown" class="battle-countdown" aria-live="polite" hidden>3</div>
     <div id="battle-timer-wrap" hidden><div class="battle-time-row"><span>TIME LEFT</span><strong id="battle-time">5.0 s</strong></div><progress id="battle-progress" max="5000" value="5000" aria-label="Time left"></progress></div>
     <button id="power-button" class="power-button" disabled hidden>POWER! <span id="local-power">Power: 0</span></button>
     <div class="battle-actions"><button id="accept-fight" class="join-button" hidden>Accept <span aria-hidden="true">↗</span></button><button id="decline-fight" class="secondary-button" hidden>Decline</button><button id="cancel-fight" class="secondary-button" hidden>Cancel</button><button id="close-battle" class="join-button" hidden>Back to the room <span aria-hidden="true">↗</span></button></div>
-    <p id="battle-note" class="battle-note">One thumb. Five seconds. All your aura.</p>
+    <p id="battle-note" class="battle-note">One thumb. Five seconds. Give it your best.</p>
   </dialog>
 </body>
 </html>
