@@ -30,6 +30,17 @@ test('rejects distant and disconnected targets', () => {
   assert.throws(() => invite(null,'fight-1','a','b',10000,p),/Acércate/);
   p.delete('b'); assert.throws(() => invite(null,'fight-1','a','b',10000,p),/conectado/);
 });
+test('allows adjacent challenges, rejects the old wider reach and rechecks distance on accept', () => {
+  const p=players();
+  p.get('b').x=820; // Two adjacent avatars, 100 room units apart.
+  const pending=invite(null,'fight-1','a','b',10000,p);
+  p.get('b').x=870; // 150 units used to be allowed, but no longer feels nearby.
+  assert.throws(() => invite(null,'too-far','a','b',10000,p),/Acércate/);
+  assert.throws(() => applyArenaAction(pending,{type:'accept',id:'fight-1',actor:'b'},11000,p),/Acérquense/);
+  assert.equal(pending.fights['fight-1'].status,'pending');
+  p.get('b').x=820;
+  assert.equal(applyArenaAction(pending,{type:'accept',id:'fight-1',actor:'b'},11000,p).fights['fight-1'].status,'active');
+});
 test('only recipient can accept, accepting twice cannot create another fight', () => {
   const arena=invite(null);
   assert.throws(() => applyArenaAction(arena,{type:'accept',id:'fight-1',actor:'a'},11000,players()),/respondida/);

@@ -113,6 +113,9 @@ test('Realtime Database rules, presence, concurrent invitations, scores and disc
       await until(()=>rooms.every(room=>room.players.get(ids[0])?.x===302),'20-client movement fanout');
     });
     await t.test('actual BattleController runs the timed tapping game on two independent clients',async()=>{
+      // The fanout scenario spread users across the room; bring this pair next to each other.
+      await rooms[1].position(390,600);
+      await until(()=>rooms.slice(0,2).every(room=>room.players.get(ids[1])?.x===390),'nearby battle pair');
       const arena=(await sdk.get(rooms[0].reference('arena'))).val() || {};
       const cooldown=Math.max(arena.slots?.[ids[0]]?.cooldownUntil || 0,arena.slots?.[ids[1]]?.cooldownUntil || 0);
       await delay(Math.max(0,cooldown-Date.now()+80));

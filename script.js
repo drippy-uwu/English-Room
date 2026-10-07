@@ -462,7 +462,7 @@ function interact(person) {
   if (!player || person === player || !connectionReady) return;
   const record = multiplayer.players.get(person.id);
   if (!record) { notify('Ese jugador ya no está conectado.'); return; }
-  if (!near(player,record)) { notify('Acércate para desafiar a este jugador.'); return; }
+  if (!near(player,person) || !near(player,record)) { notify('Acércate para desafiar a este jugador.'); return; }
   if (battle?.locked || busyFight(battle?.arena,person.id)) { notify('Ya hay una invitación o batalla pendiente.'); return; }
   const cooldown = Math.max(battle?.arena.slots?.[player.id]?.cooldownUntil || 0,battle?.arena.slots?.[person.id]?.cooldownUntil || 0);
   if (cooldown > multiplayer.now()) { notify('Espera unos segundos antes de otra batalla.'); return; }
@@ -474,6 +474,10 @@ function interact(person) {
 document.querySelector('#close-interaction').addEventListener('click', () => interactionDialog.close());
 document.querySelector('#challenge-button').addEventListener('click', async () => {
   if (!interactionTarget || battleActionPending) return;
+  // Recheck both visible and shared positions: the rival can move while this menu is open.
+  const person = remotePlayers.get(interactionTarget), record = multiplayer?.players.get(interactionTarget);
+  if (!player || !person || !record) { interactionDialog.close(); notify('Ese jugador ya no está conectado.'); return; }
+  if (!near(player,person) || !near(player,record)) { interactionDialog.close(); notify('Acércate para desafiar a este jugador.'); return; }
   battleActionPending = true;
   document.querySelector('#challenge-button').disabled = true;
   try { await battle.invite(interactionTarget); interactionDialog.close(); }

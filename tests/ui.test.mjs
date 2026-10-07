@@ -47,7 +47,8 @@ test('original room renderer integrates real participants, mobile camera and all
     async position(x,y){this.players.get('local').x=x;this.players.get('local').y=y},
     async react(){},async writeSelf(){},async leave(){this.players.delete('local');this.self=null}
   };
-  const battle={loaded:true,locked:false,arena:{},trackedId:'',localCount:0,dismiss(){},sweep(){}};
+  const invites=[];
+  const battle={loaded:true,locked:false,arena:{},trackedId:'',localCount:0,dismiss(){},sweep(){},async invite(id){invites.push(id)}};
   const context=vm.createContext({
     document:{querySelector:selector=>{assert.ok(elements[selector],`Missing DOM hook ${selector}`);return elements[selector]},querySelectorAll:selector=>selector==='[data-reaction]'?reactionButtons:zoneButtons,createElement:()=>new Element(),createElementNS:()=>new Element()},
     matchMedia:query=>({get matches(){return query.includes('760')?mobile:query.includes('reduced')}}),
@@ -67,6 +68,19 @@ test('original room renderer integrates real participants, mobile camera and all
   multiplayer.players.set('remote',{name:'Ana',avatar:3,x:790,y:700,online:true,lastSeen:Date.now()});
   run('syncPlayers(multiplayer.players)');assert.equal(elements['#avatars'].children.length,2);
   assert.equal(elements['#online-count'].textContent,'2 en la sala');
+  run('player.x=720;player.y=700;positionAvatar(player);interact(remotePlayers.get("remote"))');
+  assert.ok(elements['#interaction-dialog'].open);
+  multiplayer.players.get('remote').x=870;
+  run('syncPlayers(multiplayer.players)'); // Shared position changed before the visual interpolation finishes.
+  await elements['#challenge-button'].fire('click');
+  assert.deepEqual(invites,[]);assert.ok(!elements['#interaction-dialog'].open);
+  assert.match(elements['#toast'].textContent,/Acércate/);
+  flush();run('interact(remotePlayers.get("remote"))');
+  assert.ok(!elements['#interaction-dialog'].open); // Old 150-unit reach no longer opens Fight.
+  multiplayer.players.get('remote').x=820;run('syncPlayers(multiplayer.players)');flush();
+  run('interact(remotePlayers.get("remote"))');assert.ok(elements['#interaction-dialog'].open);
+  await elements['#challenge-button'].fire('click');
+  assert.deepEqual(invites,['remote']);assert.ok(!elements['#interaction-dialog'].open);
   for(const [width,height]of[[298,400],[354,450],[394,500],[708,480],[768,420],[1000,650],[1288,730]]){
     elements['#room'].clientWidth=width;elements['#room'].clientHeight=height;mobile=width<740;
     run('followPlayer(false)');if(mobile)assert.ok(run('camera.scale*60')>=44);

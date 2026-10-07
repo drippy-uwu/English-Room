@@ -1,5 +1,6 @@
 // Pure state transitions: the same decisions are used by Firebase transactions and tests.
-export const BATTLE = Object.freeze({ distance:190, invitation:15000, countdown:3000, duration:5000, grace:4000, cooldown:5000, retention:15000 });
+// Room coordinates, independent of camera zoom: about two 60-unit avatar widths.
+export const BATTLE = Object.freeze({ distance:110, invitation:15000, countdown:3000, duration:5000, grace:4000, cooldown:5000, retention:15000 });
 export const TERMINAL = ['finished','declined','expired','canceled'];
 export const busyFight = (arena,id) => arena?.slots?.[id]?.fightId || '';
 export const near = (a,b) => !!a && !!b && Math.hypot(a.x-b.x,a.y-b.y) <= BATTLE.distance;

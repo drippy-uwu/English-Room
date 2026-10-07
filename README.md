@@ -140,7 +140,7 @@ Una invitación y su batalla usan el mismo registro: `pending → active → fin
 - **Presencia:** `.info/connected`, registro de `onDisconnect().remove()` antes de publicar y rearme al reconectar. Heartbeat cada 10 s; tras 45 s sin noticias, un registro deja de contarse como conectado. Firebase ejecuta la retirada cuando detecta la desconexión; cerrar una pestaña suele ser rápido, una caída de red puede tardar. [Presencia de Firebase](https://firebase.google.com/docs/database/web/offline-capabilities).
 - **Movimiento:** animación local; máximo 5 actualizaciones por segundo más el destino final. Otros avatares interpolan cada cambio recibido. Se conservan los límites del suelo y la separación del prototipo.
 - **Reacciones:** una reacción actual por jugador, visible unos 2–3 s; no se guarda historial. Un jugador nuevo no reproduce reacciones antiguas.
-- **Fight:** tocar a otro jugador a no más de 190 unidades; no se permite desafiarse, desafiar a alguien offline ni reservar a alguien ocupado o en cooldown. El movimiento se pausa durante la invitación/batalla.
+- **Fight:** tocar a otro jugador a no más de 110 unidades (aproximadamente dos anchuras de avatar). La distancia se comprueba al abrir el menú, enviar la invitación y aceptarla, independientemente del zoom. No se permite desafiarse, desafiar a alguien offline ni reservar a alguien ocupado o en cooldown. El movimiento se pausa durante la invitación/batalla.
 - **Reloj:** ambos leen los mismos `startAt` y `endAt`, usando la estimación del reloj del servidor (`.info/serverTimeOffset`). Tres segundos de preparación y cinco de juego. La latencia puede producir una pequeña diferencia visual; no es un sistema competitivo de precisión.
 - **POWER:** los taps se cuentan localmente. Se escribe una puntuación cuando cambia, como máximo cada 250 ms, y una puntuación final. No hay escritura por tap.
 - **Resultado:** solo se compara cuando llegaron los dos scores finales. Hay 4 s de tolerancia para recibirlos; si falta uno, se cancela en vez de inventar un ganador. El resultado es compartido y puede ser empate.
@@ -179,7 +179,7 @@ Pruebas: validación, reservas cruzadas, distancia, aceptación/rechazo, expirac
 
 Las pruebas de backend no sustituyen la revisión visual y táctil en tus teléfonos. No se pudo hacer esa revisión desde este entorno sin navegador conectado.
 
-Verificación realizada: **12 pruebas de lógica/interfaz y 9 pruebas del emulador aprobadas**, incluida una sala con 20 sesiones independientes y una batalla real entre dos controladores. Esto comprueba el protocolo local; aún debes probar latencia y gestos en tus teléfonos con la URL de producción.
+Verificación realizada: **13 pruebas de lógica/interfaz y 9 pruebas del emulador aprobadas**, incluida la distancia corta para retos, una sala con 20 sesiones independientes y una batalla real entre dos controladores. Esto comprueba el protocolo local; aún debes probar latencia y gestos en tus teléfonos con la URL de producción.
 
 ## 8. Prueba manual en cinco escenarios
 
